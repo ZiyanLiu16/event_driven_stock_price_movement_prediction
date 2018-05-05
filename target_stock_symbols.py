@@ -10,4 +10,7 @@ INTU,
 EBAY,
 NFLX,
 TSLA,
-""".split(",")
+"""
+
+
+symbols = [s.strip() for s in symbols.split(",") if s.strip() != ""]
