@@ -58,10 +58,23 @@ class ReutersNews:
                     news_type = 'topStory'
                 else:
                     news_type = 'normal'
+
+                # get time
+                article_url = "https://www.reuters.com"+content[i].h2.a['href']
+                article_page_html = requests.get(article_url).content
+                article_soup = BeautifulSoup(article_page_html, "lxml")
+                publish_time_string = article_soup.find_all("div", {"class":"date_V9eGk"})
+                publish_time_string = ' '.join(publish_time_string[0].text.split()[:6])
+                publish_time = datetime.datetime.strptime(publish_time_string, '%b %d, %Y / %I:%M %p')
+                publish_time_string = publish_time.strftime('%Y-%m-%d-%H-%M-%S')
+
+
                 print(
-                    "symbol: {}\ndate: {}\ntitle: {}\nnews_type: {}\n".format(symbol, date_string, title, news_type))
+                    "symbol: {}\ndate: {}\ndatetime: {}\ntitle: {}\nnews_type: {}\n".format(
+                        symbol, date_string, publish_time_string, title, news_type))
                 date_string_with_dash = date_string[:4]+'-'+date_string[4:6]+"-"+date_string[7:]
-                print(','.join([symbol, company, date_string_with_dash, title, body, news_type]), file=f)
+                print(','.join([symbol, company, publish_time_string, date_string_with_dash, title, body, news_type]), file=f)
+
         f.close()
 
     @staticmethod
