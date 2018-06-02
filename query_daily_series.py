@@ -1,9 +1,13 @@
+import pickle
 import requests
 from alpha_api import alpha_api
 from datetime import datetime
-from tickers_to_track import tickers
 time_format = "%Y-%m-%d"
 today_string = datetime.strftime(datetime.today(), time_format)
+
+with open("tracking_company.pickle", "br") as f:
+    tracking_company = pickle.load(f)
+    tickers = {ticker for name, ticker in tracking_company.items()}
 
 
 def query_daily_series():
@@ -34,4 +38,3 @@ def query_daily_series():
 
 if __name__ == "__main__":
     query_daily_series()
-
