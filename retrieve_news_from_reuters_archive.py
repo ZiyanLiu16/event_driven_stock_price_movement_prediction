@@ -3,6 +3,11 @@ import requests
 from bs4 import BeautifulSoup
 
 
+with open("tracking_company.pickle", "br") as f:
+    tracking_company = pickle.load(f)
+    tickers = {ticker for name, ticker in tracking_company.items()}
+
+
 def seek_company(title, ticket_common_name):
     # search for company name in the news title,
     # return (ticket of company, name of name) if there is one
@@ -28,6 +33,7 @@ def seek_company(title, ticket_common_name):
 with open("tracking_company.pickle", "br") as f:
     tracking_company = pickle.load(f)
 
+
 def download_news(dates_to_check=2):
     from datetime import datetime, timedelta
     today = datetime.today()
@@ -42,7 +48,6 @@ def download_news(dates_to_check=2):
         # parsing web page
         soup = BeautifulSoup(content, "lxml")
         items = soup.find_all("div", {"class": ["headlineMed"]})
-
         for item in items:
             # save events
             article_url = item.a['href']
@@ -56,11 +61,12 @@ def download_news(dates_to_check=2):
                 print(item.get_text())
                 print(raw_text)
 
-            matching = seek_company(title)
+            matching = seek_company(title, tracking_company)
             if matching is False:
                 continue
             company_ticket, company_common_name = matching
             title = title.replace('"', "'")
+            
             with open("news_examples_with_stocks.csv", "a+") as f:
                 print('"{}","{}","{}","{}","{}"'.format(
                     news_time_string, company_ticket, company_common_name, title, article_url), file=f
