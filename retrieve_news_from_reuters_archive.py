@@ -66,8 +66,8 @@ def download_news(dates_to_check=2):
                 continue
             company_ticket, company_common_name = matching
             title = title.replace('"', "'")
-            
-            with open("news_examples_with_stocks.csv", "a+") as f:
+
+            with open("company_news.csv", "a+") as f:
                 print('"{}","{}","{}","{}","{}"'.format(
                     news_time_string, company_ticket, company_common_name, title, article_url), file=f
                 )
