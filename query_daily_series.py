@@ -2,6 +2,9 @@ import pickle
 import requests
 from alpha_api import alpha_api
 from datetime import datetime
+import json
+import time
+
 time_format = "%Y-%m-%d"
 today_string = datetime.strftime(datetime.today(), time_format)
 
@@ -11,7 +14,9 @@ with open("tracking_company.pickle", "br") as f:
 
 
 def query_daily_series():
+    import time
     for ticker in tickers:
+        s_t = time.time()
         # query data
         print('ticker: ', ticker)
         daily_url = (
@@ -27,13 +32,16 @@ def query_daily_series():
             daily_series = {"series": response["Time Series (Daily)"]}
         except:
             print("response: ", response)
+            continue
 
         # store data
-        import json
         output_filename = "daily_prices_series/daily_series_{}_lastDay_{}.json".format(ticker, today_string)
         with open(output_filename, 'w') as f:
             json.dump(daily_series, f)
         f.close()
+
+        #time.sleep(3)
+        print("use {} sec to get historical prices of {}".format(time.time() - s_t, ticker))
 
 
 if __name__ == "__main__":

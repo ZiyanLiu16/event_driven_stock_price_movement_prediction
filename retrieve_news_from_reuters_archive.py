@@ -36,8 +36,10 @@ with open("tracking_company.pickle", "br") as f:
 
 def download_news(dates_to_check=2):
     from datetime import datetime, timedelta
+    import time
     today = datetime.today()
     for d in range(dates_to_check):
+        s_t = time.time()
         # get page contents
         date_to_check = today + timedelta(days=-d)
         date_string = datetime.strftime(date_to_check, "%Y%m%d")
@@ -67,7 +69,10 @@ def download_news(dates_to_check=2):
             company_ticket, company_common_name = matching
             title = title.replace('"', "'")
 
+            
             with open("company_news.csv", "a+") as f:
                 print('"{}","{}","{}","{}","{}"'.format(
                     news_time_string, company_ticket, company_common_name, title, article_url), file=f
                 )
+
+        print("used {} sec to query news".format(time.time() - s_t))
