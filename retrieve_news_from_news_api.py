@@ -22,7 +22,7 @@ def make_query(company_name, sort_criterion, start_date):
              'articles':
              {'source': , 'author':, 'title':, 'description':, 'url':, 'content': , 'publishedAt':,}
     """
-    from news_api_key import news_api_key
+    from credentials import news_api_key
     import requests
     url = ('https://newsapi.org/v2/everything?'
            'q={}&'
@@ -128,6 +128,3 @@ def retrieve_news(start_date=None, save_news=True):
         save_news_to_csv(news)
 
     return news
-
-
-
