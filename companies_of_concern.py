@@ -1,0 +1,1 @@
+companies_of_concern = "Netflix, Alibaba, HUYA, YY, Bilibili, Netflix, Facebook, Google, Amazon".split(', ')
