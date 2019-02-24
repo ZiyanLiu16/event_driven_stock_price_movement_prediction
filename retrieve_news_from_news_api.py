@@ -92,11 +92,13 @@ def reformat_news(elem, company_name):
     extract title, date, company information
     :param elem: {'source': , 'author':, 'title':, 'description':, 'url':, 'content': , 'publishedAt':,} (dict)
     :param company_name: (str)
-    :return: (date_str, stock_symbol, company_name, titile, url)(tuple) # TODO: stock symbol
+    :return: (date_str, stock_symbol, company_name, title, url)(tuple) 
     """
+    # TODO: stock symbol
     from utils import clean_text_for_store_in_csv, reformat_datestr
     return (reformat_datestr(elem['publishedAt']),
-            "", company_name,
+            "",
+            company_name,
             clean_text_for_store_in_csv(elem['title']),
             elem['url'])
 

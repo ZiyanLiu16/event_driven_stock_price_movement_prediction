@@ -133,7 +133,7 @@ class Model:
         need to get xgboost model, bow_vocabulary, reduced_vocabulary_projection, reduced_dim_names,
         either by training model or loading a trained model
         :param texts: (list of str) 
-        :return: 
+        :return: (list of float)
         """
         if self.model is None:
             print("please train or load xgboost model first")
@@ -143,7 +143,7 @@ class Model:
         train_reduced_bow = self.transfer_reduced_bow(train_bow)
         d = self.dataframe_to_dmatrix(train_reduced_bow, None)
         pred_prob = self.model.predict(d)
-        return pred_prob
+        return pred_prob.tolist()
 
     def save_model(self, model_filename=None):
         if model_filename is None:

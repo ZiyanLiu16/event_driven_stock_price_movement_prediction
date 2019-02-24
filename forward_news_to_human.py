@@ -3,22 +3,26 @@ from retrieve_news_from_news_api import retrieve_news
 from model import Model
 
 
-def find_positive_news(news):
+def get_predictions(news):
+    """
+    :param news: (list of str) 
+    :return: list of probability whether a piece of news suggest rise in stock price (list of float) 
+    """
     model = Model()
-    return [elem for elem in news if model.predict(elem) == 'positive']
+    model.load_model("model_2019-02-24_16-11.pickle")
+    titles = [elem[3] for elem in news]
+    return model.predict(titles)
 
 
-def forward_information(only_predicted_positive=False):
+def forward_information():
     """
     this function forward useful news via email
     :param only_predicted_positive: if True, only includes news predicted to suggest rise in price by model
     """
     news = retrieve_news()
+    news_prob = get_predictions(news)
 
-    if only_predicted_positive:
-        news = find_positive_news(news)
-
-    message = create_message("ziyan@canvs.tv", "zl488@cornell.edu", news)
+    message = create_message("ziyan@canvs.tv", "zl488@cornell.edu", news, news_prob)
     service = build_service()
     send_message(service, "ziyan@canvs.tv", message)
 
@@ -40,31 +44,35 @@ def get_email_subject():
     return "news that mights suggest chances"
 
 
-def form_content(news):
+def form_content(news, news_prob):
     """
     form content of email
     :param news: list of (publish_date, symbol, company_name, news, url) (list of tuple)
+    :param news_prob: list of probability whether the piece of news suggest rise in stock price (list of float)
     :return: (str)
     """
     content_list = []
-    for elem in news:
+    for i, elem in enumerate(news):
         company_name = elem[2]
         title = elem[3]
         url = elem[4]
-        content_list.append("company_name: {}\ntitle:{}\nurl:{}".format(company_name, title, url))
+        prob = news_prob[i]
+        content_list.append("company_name: {}\nscore:{}\ntitle:{}\nurl:{}".format(
+            company_name, prob, title, url))
     return '\n\n'.join(content_list)
 
 
-def create_message(sender, to, news):
+def create_message(sender, to, news, news_prob):
     """ 
     :param sender: Email address of the sender.
     :param to: Email address of the receiver.
     :param subject: The subject of the email message.
     :param news: list of (publish_date, symbol, company_name, news, url) (list of tuple)
+    :param news_prob: list of probability whether the piece of news suggest rise in stock price
     :return: An object containing a base64url encoded email object.
     """
     subject = get_email_subject()
-    message_text = form_content(news)
+    message_text = form_content(news, news_prob)
 
     from email.mime.text import MIMEText
     import base64
