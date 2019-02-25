@@ -56,7 +56,7 @@ def form_content(news, news_prob):
         company_name = elem[2]
         title = elem[3]
         url = elem[4]
-        prob = news_prob[i]
+        prob = round(news_prob[i], 4)
         content_list.append("company_name: {}\nscore:{}\ntitle:{}\nurl:{}".format(
             company_name, prob, title, url))
     return '\n\n'.join(content_list)
