@@ -14,12 +14,13 @@ def get_predictions(news):
     return model.predict(titles)
 
 
-def forward_information():
+def forward_information(start_date=None):
     """
     this function forward useful news via email
-    :param only_predicted_positive: if True, only includes news predicted to suggest rise in price by model
+    :param start_date: xxxx-xx-xx
+    :return: 
     """
-    news = retrieve_news()
+    news = retrieve_news(start_date=start_date)
     prob = get_predictions(news)
 
     message = create_message("ziyan@canvs.tv", "zl488@cornell.edu", news, prob)
