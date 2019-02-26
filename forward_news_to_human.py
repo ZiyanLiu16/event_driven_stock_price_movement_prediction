@@ -20,9 +20,9 @@ def forward_information():
     :param only_predicted_positive: if True, only includes news predicted to suggest rise in price by model
     """
     news = retrieve_news()
-    news_prob = get_predictions(news)
+    prob = get_predictions(news)
 
-    message = create_message("ziyan@canvs.tv", "zl488@cornell.edu", news, news_prob)
+    message = create_message("ziyan@canvs.tv", "zl488@cornell.edu", news, prob)
     service = build_service()
     send_message(service, "ziyan@canvs.tv", message)
 
@@ -44,35 +44,30 @@ def get_email_subject():
     return "news that mights suggest chances"
 
 
-def form_content(news, news_prob):
+def form_content(news, prob):
     """
     form content of email
     :param news: list of (publish_date, symbol, company_name, news, url) (list of tuple)
-    :param news_prob: list of probability whether the piece of news suggest rise in stock price (list of float)
+    :param prob: list of probability whether the piece of news suggest rise in stock price (list of float)
     :return: (str)
     """
-    content_list = []
-    for i, elem in enumerate(news):
-        company_name = elem[2]
-        title = elem[3]
-        url = elem[4]
-        prob = round(news_prob[i], 4)
-        content_list.append("company_name: {}\nscore:{}\ntitle:{}\nurl:{}".format(
-            company_name, prob, title, url))
+    news_prob = [(round(prob[i], 4), elem[2], elem[3], elem[4]) for i, elem in enumerate(news)]
+    news_prob_sorted = sorted(news_prob, key=lambda x: x[0], reverse=True)
+    content_list = ["company_name: {}\nscore:{}\ntitle:{}\nurl:{}".format(company_name, prob, title, url)
+                    for prob, company_name, title, url in news_prob_sorted]
     return '\n\n'.join(content_list)
 
 
-def create_message(sender, to, news, news_prob):
+def create_message(sender, to, news, prob):
     """ 
     :param sender: Email address of the sender.
     :param to: Email address of the receiver.
-    :param subject: The subject of the email message.
     :param news: list of (publish_date, symbol, company_name, news, url) (list of tuple)
-    :param news_prob: list of probability whether the piece of news suggest rise in stock price
+    :param prob: list of probability whether the piece of news suggest rise in stock price
     :return: An object containing a base64url encoded email object.
     """
     subject = get_email_subject()
-    message_text = form_content(news, news_prob)
+    message_text = form_content(news, prob)
 
     from email.mime.text import MIMEText
     import base64
