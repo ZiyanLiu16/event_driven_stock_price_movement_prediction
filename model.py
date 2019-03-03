@@ -66,7 +66,7 @@ class Model:
         import xgboost as xgb
         return xgb.DMatrix(X, label=y, feature_names=self.feature_names)
 
-    def prepare_data(self, data_path, use_resample=False):
+    def prepare_data(self, data_path, use_smote=False):
 
         df = pd.read_csv(data_path)  # "../input/news_price_records.csv"
         df = df.dropna()
@@ -90,10 +90,10 @@ class Model:
 
         y = train_df['y']
         from sklearn.model_selection import train_test_split
-        Xtr, Xv, ytr, yv = train_test_split(train_reduced_bow.values, y, test_size=0.2, random_state=1992)
+        Xtr, Xv, ytr, yv = train_test_split(train_reduced_bow.values, y, test_size=0.1, random_state=1992)
 
         # make train data balanced
-        if use_resample:
+        if use_smote:
             from imblearn.over_sampling import SMOTE
             smote = SMOTE(random_state=333)
             Xtr, ytr = smote.fit_sample(Xtr, ytr)
@@ -101,9 +101,10 @@ class Model:
         # transfer to xgb accepatable form
         dtrain = self.dataframe_to_dmatrix(Xtr, ytr)
         dvalid = self.dataframe_to_dmatrix(Xv, yv)
+        dtest = self.dataframe_to_dmatrix(test_reduced_bow.values, test_df['y'])
         watchlist = [(dtrain, 'train'), (dvalid, 'valid')]
 
-        return dtrain, watchlist
+        return dtrain, dvalid, dtest, test_df['y'], test_df, watchlist
 
     @staticmethod
     def train_xgboost(dtrain, watchlist):
@@ -123,9 +124,21 @@ class Model:
         print("Time taken in training is {}.".format((time.time() - start) / 60))
         return model
 
-    def train_model(self, data_path):
-        dtrain, watchlist = self.prepare_data(data_path)
+    def train_model(self, data_path, use_smote, show_performance=True):
+        dtrain, dvalid, dtest, test_y, test_df, watchlist = self.prepare_data(data_path, use_smote)
         self.model = self.train_xgboost(dtrain, watchlist)
+        if show_performance:
+            self.show_performance(dtest, test_y, test_df)
+
+    def show_performance(self, dtest, test_y, test_df):
+        pred_prob = self.model.predict(dtest)
+        pred = pred_prob > .5
+        accuracy = sum(pred == test_y.values) / len(pred)
+        print("accuracy:", round(accuracy, 3))
+        print("examples:")
+        for i in range(len(pred)):
+            print("title:", test_df.loc[i, 'title'])
+            print("probability of rise in price:", round(pred_prob[i], 4), '\n')
 
     def predict(self, texts):
         """

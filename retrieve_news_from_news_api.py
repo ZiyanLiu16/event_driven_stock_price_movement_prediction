@@ -3,13 +3,14 @@ def process_date(start_date):
     """
     provide a date_string (xxxx-xx-xx) suggesting search for news published since the date (str)
     if input is None, the date is today
-    :param start_date: 
+    :param start_date (str or None)
     :return: (str)
     """
     if start_date is None:
         from datetime import datetime
         start_date = datetime.now()
-    return start_date.strftime("%Y-%m-%d")
+        return start_date.strftime("%Y-%m-%d")
+    return start_date
 
 
 def make_query(company_name, sort_criterion, start_date):
@@ -78,7 +79,7 @@ def decide_news_sort_criterion(company_name):
 def make_single_search(company_name, start_date=None):
     """
     :param company_name (str)
-    :param start_date: since which date the news are published in results (str, format "XXXX-XX-XX")
+    :param start_date: since which date the news are published in results (str, format "XXXX-XX-XX" or None)
     :return: 
     """
     start_date = process_date(start_date)
