@@ -124,21 +124,22 @@ class Model:
         print("Time taken in training is {}.".format((time.time() - start) / 60))
         return model
 
-    def train_model(self, data_path, use_smote, show_performance=True):
+    def train_model(self, data_path, use_smote, show_performance=True, export_test_set=False):
         dtrain, dvalid, dtest, test_y, test_df, watchlist = self.prepare_data(data_path, use_smote)
         self.model = self.train_xgboost(dtrain, watchlist)
         if show_performance:
-            self.show_performance(dtest, test_y, test_df)
+            self.evaluate_model(dtest, test_y, test_df)
+        if export_test_set:
+            return self.model.predict(dtest), [1 if elem else 0 for elem in test_y], test_df
+        return
 
-    def show_performance(self, dtest, test_y, test_df):
+    def evaluate_model(self, dtest, test_y, test_df):
         pred_prob = self.model.predict(dtest)
         pred = pred_prob > .5
         accuracy = sum(pred == test_y.values) / len(pred)
+        precision = sum((pred == test_y.values) & (pred == True)) / sum(pred)
         print("accuracy:", round(accuracy, 3))
-        print("examples:")
-        for i in range(len(pred)):
-            print("title:", test_df.loc[i, 'title'])
-            print("probability of rise in price:", round(pred_prob[i], 4), '\n')
+        print("precision:", round(precision, 3))
 
     def predict(self, texts):
         """
