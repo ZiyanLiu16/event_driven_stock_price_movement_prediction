@@ -9,13 +9,13 @@ def get_predictions(news):
     :return: list of probability whether a piece of news suggest rise in stock price (list of float) 
     """
     model = Model()
-    #model.load_model("model_2019-02-24_16-11.pickle")
+
     model.load_model("model_2019-02-27_23-45.pickle")
     titles = [elem[3] for elem in news]
     return model.predict(titles)
 
 
-def forward_information(start_date=None):
+def forward_information(start_date=None, via_email=True):
     """
     this function forward useful news via email
     :param start_date: xxxx-xx-xx (str or None)
@@ -23,6 +23,9 @@ def forward_information(start_date=None):
     """
     news = retrieve_news(start_date=start_date)
     prob = get_predictions(news)
+
+    if not via_email:
+        return form_content(news, prob)
 
     message = create_message("ziyan@canvs.tv", "zl488@cornell.edu", news, prob)
     service = build_service()
