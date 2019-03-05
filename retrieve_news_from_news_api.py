@@ -1,23 +1,25 @@
 # this file enable querying news from news api (https://newsapi.org/docs/get-started)
-def process_date(start_date):
+def process_date(date):
     """
-    provide a date_string (xxxx-xx-xx) suggesting search for news published since the date (str)
-    if input is None, the date is today
-    :param start_date (str or None)
+    provide a date_ (like 2019-03-05 or like 2019-03-05T20:10:23) 
+                    suggesting search for news published since/until the date/time (str)
+                    if input is None, the date is today at 00:00:00
+    :param date (str or None)
     :return: (str)
     """
-    if start_date is None:
+    if date is None:
         from datetime import datetime
-        start_date = datetime.now()
-        return start_date.strftime("%Y-%m-%d")
-    return start_date
+        date = datetime.now()
+        return date.strftime("%Y-%m-%d")
+    return date
 
 
-def make_query(company_name, sort_criterion, start_date):
+def make_query(company_name, sort_criterion, start_date, end_date):
     """
     :param company_name: (str)
     :param sort_criterion: either search by "popularity" or "relevance" (str)
-    :param start_date: since which date the news are published in results (str, format "XXXX-XX-XX")
+    :param start_date: since which date the news are published in results (str, format "XXXX-XX-XX" or "2019-03-05T20:10:23"))
+    :param end_date:   until which date the news are published in results (str, format "XXXX-XX-XX" or "2019-03-05T20:10:23"))
     :return: dict of :
             {'totalResults':
              'articles':
@@ -28,8 +30,9 @@ def make_query(company_name, sort_criterion, start_date):
     url = ('https://newsapi.org/v2/everything?'
            'q={}&'
            'from={}&'
+           'to={}&'
            'sortBy={}&'
-           'apiKey={}'.format(company_name, start_date, sort_criterion, news_api_key))
+           'apiKey={}'.format(company_name, start_date, end_date, sort_criterion, news_api_key))
     return requests.get(url).json()
 
 
@@ -72,19 +75,23 @@ def decide_news_sort_criterion(company_name):
     if company_name in {"YY", "HUYA", "Bilibili"}:
         sort_criterion = "relevance"
     else:
-        sort_criterion="popularity"
+        sort_criterion = "popularity"
     return sort_criterion
 
 
-def make_single_search(company_name, start_date=None):
+def make_single_search(company_name, start_date=None, end_date=None):
     """
     :param company_name (str)
-    :param start_date: since which date the news are published in results (str, format "XXXX-XX-XX" or None)
-    :return: 
+    :param start_date: since which date the news are published in results (
+                       str, format "XXXX-XX-XX" or "2019-03-05T20:10:23")
+    :param end_date: util which date the news are published in results (
+                       str, format "XXXX-XX-XX" or "2019-03-05T20:10:23")
+    :return:
     """
     start_date = process_date(start_date)
+    end_date = process_date(end_date)
     sort_criterion = decide_news_sort_criterion(company_name)
-    response = make_query(company_name, sort_criterion, start_date)
+    response = make_query(company_name, sort_criterion, start_date, end_date)
     return response
 
 
@@ -120,11 +127,11 @@ def clean_and_summarize_result(news, company_name):
     return relevant_news_reformatted
 
 
-def retrieve_news(start_date=None, save_news=True):
+def retrieve_news(start_date, end_date, save_news=True):
     news = []
     from companies_of_concern import companies_of_concern as company_name_list
     for company_name in company_name_list:
-        response = make_single_search(company_name, start_date)
+        response = make_single_search(company_name, start_date, end_date)
         news.extend(clean_and_summarize_result(response, company_name))
 
     if save_news:

@@ -15,13 +15,13 @@ def get_predictions(news):
     return model.predict(titles)
 
 
-def forward_information(start_date=None, via_email=True):
+def forward_information(start_date=None, end_date=None, via_email=True):
     """
     this function forward useful news via email
     :param start_date: xxxx-xx-xx (str or None)
     :return: 
     """
-    news = retrieve_news(start_date=start_date)
+    news = retrieve_news(start_date=start_date, end_date=end_date)
     prob = get_predictions(news)
 
     if not via_email:
