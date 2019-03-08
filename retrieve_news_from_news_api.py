@@ -95,17 +95,18 @@ def make_single_search(company_name, start_date=None, end_date=None):
     return response
 
 
-def reformat_news(elem, company_name):
+def reformat_news(elem, company_name, company_ticker):
     """
     extract title, date, company information
     :param elem: {'source': , 'author':, 'title':, 'description':, 'url':, 'content': , 'publishedAt':,} (dict)
     :param company_name: (str)
-    :return: (date_str, stock_symbol, company_name, title, url)(tuple) 
+    :param company_ticker: (str)
+    :return: (date_str, ticker, company_name, title, url)(tuple) 
     """
     # TODO: stock symbol
     from utils import clean_text_for_store_in_csv, reformat_datestr
     return (reformat_datestr(elem['publishedAt']),
-            "",
+            company_ticker,
             company_name,
             clean_text_for_store_in_csv(elem['title']),
             elem['url'])
@@ -121,20 +122,46 @@ def save_news_to_csv(news):
             print(','.join(elem), file=f)
 
 
-def clean_and_summarize_result(news, company_name):
+def clean_and_summarize_result(news, company_name, company_ticker):
     relevant_news = filter_irrelevant_news(news, company_name)
-    relevant_news_reformatted = [reformat_news(elem, company_name) for elem in relevant_news]
+    relevant_news_reformatted = [reformat_news(elem, company_name, company_ticker) for elem in relevant_news]
     return relevant_news_reformatted
 
 
-def retrieve_news(start_date, end_date, save_news=True):
+def retrieve_news(start_date, end_date, company_source, save_news=True):
+
     news = []
-    from companies_of_concern import companies_of_concern as company_name_list
-    for company_name in company_name_list:
+    company_name_list, tickers_list = decide_companies_to_check(company_source)
+    for i, company_name in enumerate(company_name_list):
         response = make_single_search(company_name, start_date, end_date)
-        news.extend(clean_and_summarize_result(response, company_name))
+        news.extend(clean_and_summarize_result(response, company_name, tickers_list[i]))
 
     if save_news:
         save_news_to_csv(news)
 
     return news
+
+
+def decide_companies_to_check(company_source):
+    """
+    decide news from which companies to search
+    :param company_source: flag, if == "my_favorite", only check companies from "companies_of_concern.py",
+           otherwise track all companies from "tracking_compnay.pickle.
+    :return: company_names: (list of str)
+    :return: tickers: (list of str)
+    """
+    from companies_of_concern import companies_of_concern as company_names_my_favorite
+    from companies_of_concern import companies_of_concern_ticker as tickers_my_favorite
+    if company_source != "my_favorite":
+        import pickle
+        with open("tracking_company.pickle", "br") as f:
+            tracking_company = pickle.load(f)
+        for i, name in enumerate(company_names_my_favorite):  # add those not in pickle, like Bilibili, BILI
+            tracking_company[name] = tickers_my_favorite[i]
+        company_names, tickers = list(tracking_company.keys()), list(tracking_company.values())
+    else:
+        company_names, tickers = company_names_my_favorite, tickers_my_favorite
+
+    return company_names, tickers
+
+
