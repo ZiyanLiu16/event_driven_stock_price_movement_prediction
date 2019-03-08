@@ -27,9 +27,10 @@ def forward_information(start_date=None, end_date=None, via_email=True):
     if not via_email:
         return form_content(news, prob)
 
-    message = create_message("ziyan@canvs.tv", "zl488@cornell.edu", news, prob)
+    from credentials import sender_email, receiver_email
+    message = create_message(sender_email, receiver_email, news, prob)
     service = build_service()
-    send_message(service, "ziyan@canvs.tv", message)
+    send_message(service, sender_email, message)
 
 
 def build_service():
